@@ -81,7 +81,7 @@ if __name__ == '__main__':
             q = DNSQuery(data)
             r = A(q, addr[0])
             udps.sendto(r.answer(), addr)
-            print '%s -> %s' % (p.domain, addr[0])
+            print '%s -> %s' % (q.domain, addr[0])
     except KeyboardInterrupt:
       print 'Closing'
       udps.close()
