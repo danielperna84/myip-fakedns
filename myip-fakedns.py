@@ -1,6 +1,13 @@
 #!/usr/bin/python
 import socket
 import struct
+import time
+
+DELAY = 5
+BLACKLIST = [
+    "hoffmeister.be.",
+    "hoffmeister.br."
+]
 
 def _get_question_section(query):
     # Query format is as follows: 12 byte header, question section (comprised
@@ -71,23 +78,30 @@ class DNSQuery:
                 self.domain += data[ini+1:ini+lon+1]+'.'
                 ini += lon+1
                 lon = ord(data[ini])
-            self.type = data[ini:][1:3]
-            #print struct.unpack(">H", self.type)
-        else:
-            self.type = data[-4:-2]
+#            self.type = data[ini:][1:3]
+#            #print struct.unpack(">H", self.type)
+#        else:
+#            self.type = data[-4:-2]
 
 if __name__ == '__main__':
     udps = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udps.bind(('',53))
-  
+    lastquery = time.time()
     try:
         while 1:
             data, addr = udps.recvfrom(1024)
             try:
                 q = DNSQuery(data)
-                r = A(q, addr[0])
-                udps.sendto(r.answer(), addr)
-                print '%s -> %s' % (q.domain, addr[0])
+                if q.domain not in BLACKLIST:
+                    if (time.time() - lastquery) > DELAY:
+                        r = A(q, addr[0])
+                        print '%s -> %s' % (q.domain, addr[0])
+                        udps.sendto(r.answer(), addr)
+                        lastquery = time.time()
+                    else:
+                        print "ignoring query because of delay"
+                else:
+                    print "ignoring query for %s" % q.domain
             except Exception, err:
                 print "Exception caused by %s: %s" % (addr, err)
                 udps.sendto("Invalid request", addr)
