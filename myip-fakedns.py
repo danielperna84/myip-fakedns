@@ -4,10 +4,32 @@ import struct
 import time
 
 DELAY = 5
+MAXSUBDOMAINS = 3
 BLACKLIST = [
     "hoffmeister.be.",
-    "hoffmeister.br."
+    "hoffmeister.br.",
+    "akamaitechnologies.com.",
+    "openresolverproject.org.",
+    "openresolvertest.net.",
+    "clouddns.eu.",
+    "VERSION.BIND."
 ]
+LASTQUERY = time.time()
+
+def queryfilter(query):
+    global LASTQUERY
+    elapsed = time.time() - LASTQUERY
+    if elapsed < DELAY:
+        print "ignoring query because of delay: %i: %s" % (elapsed, query.domain)
+        return False
+    if len(query.domain.split(".")) > MAXSUBDOMAINS:
+        print "ignoring query because of too many subdomains: %s" % query.domain
+        return False
+    for bl_domain in BLACKLIST:
+        if bl_domain in query.domain:
+            print "ignoring query for blacklisted %s" % query.domain
+            return False
+    return True
 
 def _get_question_section(query):
     # Query format is as follows: 12 byte header, question section (comprised
@@ -86,25 +108,19 @@ class DNSQuery:
 if __name__ == '__main__':
     udps = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udps.bind(('',53))
-    lastquery = time.time()
     try:
         while 1:
             data, addr = udps.recvfrom(1024)
             try:
                 q = DNSQuery(data)
-                if q.domain not in BLACKLIST:
-                    if (time.time() - lastquery) > DELAY:
-                        r = A(q, addr[0])
-                        print '%s -> %s' % (q.domain, addr[0])
-                        udps.sendto(r.answer(), addr)
-                        lastquery = time.time()
-                    else:
-                        print "ignoring query because of delay"
-                else:
-                    print "ignoring query for %s" % q.domain
+                if queryfilter(q):
+                    r = A(q, addr[0])
+                    print '%s -> %s' % (q.domain, addr[0])
+                    udps.sendto(r.answer(), addr)
+                LASTQUERY = time.time()
             except Exception, err:
                 print "Exception caused by %s: %s" % (addr, err)
-                udps.sendto("Invalid request", addr)
+                #udps.sendto("Invalid request", addr)
 
     except KeyboardInterrupt:
       print 'Closing'
