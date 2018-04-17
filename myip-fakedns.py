@@ -19,7 +19,6 @@ BLACKLIST = [
     "openresolverproject.org.",
     "openresolvertest.net.",
     "clouddns.eu.",
-    "VERSION.BIND.",
     "version.bind."
 ]
 
