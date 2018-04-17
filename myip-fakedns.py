@@ -19,7 +19,8 @@ BLACKLIST = [
     "openresolverproject.org.",
     "openresolvertest.net.",
     "clouddns.eu.",
-    "VERSION.BIND."
+    "VERSION.BIND.",
+    "version.bind."
 ]
 
 LASTQUERY = time.time()
@@ -37,7 +38,7 @@ def queryfilter(query, source):
         LOG.warning("ignoring query because of too many subdomains: %s", query.domain)
         return False
     for bl_domain in BLACKLIST:
-        if bl_domain in query.domain:
+        if bl_domain.lower() in query.domain.lower():
             LOG.warning("ignoring query for blacklisted %s", query.domain)
             return False
     return True
