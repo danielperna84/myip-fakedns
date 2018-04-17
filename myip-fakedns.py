@@ -7,7 +7,9 @@ from logging.handlers import RotatingFileHandler
 
 LOG = logging.getLogger('myip')
 LOG.setLevel(logging.INFO)
+FORMATTER = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 HANDLER = RotatingFileHandler('myip.log', maxBytes=2000, backupCount=10)
+HANDLER.setFormatter(FORMATTER)
 LOG.addHandler(HANDLER)
 
 DELAY = 5
