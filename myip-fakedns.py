@@ -14,11 +14,15 @@ BLACKLIST = [
     "clouddns.eu.",
     "VERSION.BIND."
 ]
+
 LASTQUERY = time.time()
 
-def queryfilter(query):
+def queryfilter(query, source):
     global LASTQUERY
     elapsed = time.time() - LASTQUERY
+    if not query.domain:
+        print "ignoring query because it has no data: source: %s" % source
+        return False
     if elapsed < DELAY:
         print "ignoring query because of delay: %i: %s" % (elapsed, query.domain)
         return False
@@ -113,7 +117,7 @@ if __name__ == '__main__':
             data, addr = udps.recvfrom(1024)
             try:
                 q = DNSQuery(data)
-                if queryfilter(q):
+                if queryfilter(q, addr[0]):
                     r = A(q, addr[0])
                     print '%s -> %s' % (q.domain, addr[0])
                     udps.sendto(r.answer(), addr)
