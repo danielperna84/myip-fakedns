@@ -28,17 +28,17 @@ def queryfilter(query, source):
     global LASTQUERY
     elapsed = time.time() - LASTQUERY
     if not query.domain:
-        LOG.warning("ignoring query because it has no data: source: %s", source)
+        LOG.warning("ignoring query because it has no data. source: %s", source)
         return False
     if elapsed < DELAY:
-        LOG.warning("ignoring query because of delay: %i: %s", elapsed, query.domain)
+        LOG.warning("ignoring query because of delay. delay: %i, domain: %s, source: %s", elapsed, query.domain, source)
         return False
     if len(query.domain.split(".")) > MAXSUBDOMAINS:
-        LOG.warning("ignoring query because of too many subdomains: %s", query.domain)
+        LOG.warning("ignoring query because of too many subdomains. domain: %s, source: %s", query.domain, source)
         return False
     for bl_domain in BLACKLIST:
         if bl_domain.lower() in query.domain.lower():
-            LOG.warning("ignoring query for blacklisted %s", query.domain)
+            LOG.warning("ignoring query for blacklisted domain. domain: %s, source: %s", query.domain, source)
             return False
     return True
 
